@@ -21,6 +21,8 @@ jQuery(document).ready(function($){
         
         if (lbl_id_user!='0')
         {
+            $("#sel_type_dishval").text("");
+            $("#txtnombreval").text("");
             $("#titulo_modal_dish").html('Nuevo Plato');
             $("#modalnuevo").modal("show");
             $("#txtId").val('0');
@@ -42,7 +44,8 @@ jQuery(document).ready(function($){
                     
             tableHTML = obtenerhtmltableingred('','1',1) ;
 
-            $('#tabla_det_ingred tbody').append(tableHTML);                        
+            $('#tabla_det_ingred tbody').append(tableHTML); 
+
         // console.log('click nuevo');
         }
         else
@@ -228,6 +231,8 @@ jQuery(document).ready(function($){
     $(".btn-cerrar-modal-new-dish").click(function(){
         
         $('#modalnuevo').modal('hide');
+        $("#sel_type_dishval").text("");
+        $("#txtnombreval").text("");
     });
 
     $(".btn_cerrar_modal_ini_sesion").click(function(){
@@ -269,133 +274,175 @@ jQuery(document).ready(function($){
         
     });
 
-   
+    var validar_campos = function() {
+        
+        var valid=true; 
+        if($("#sel_type_dish").val()==null)
+        {
+            $("#sel_type_dishval").text("Seleccione un tipo de plato");
+            $("#sel_type_dishval").css("color", "red");
+            valid= false;
+
+        }
+
+
+        if( $("#txtnombre").val().trim()=="")
+        {
+            $("#txtnombreval").text("Añade un nombre de plato");
+            $("#txtnombreval").css("color", "red");
+            valid= false;
+
+        }
+
+        valid_chek=false;
+        if(
+            $("#id_type_menu_1").is(':checked')==false && 
+            $("#id_type_menu_2").is(':checked')==false &&
+            $("#id_type_menu_3").is(':checked')==false
+        )
+        {
+            valid_chek=true;
+            $("#txtnombreval").text("Seleccione un tipo de menú");
+            alert("Añade un chek")
+        }
+
+
+        return valid;
+    }
 
     $("#btnguardardish").click(function(){
 
-        var id_dish=$("#txtId").val();
-     
-        var data_ingredient = [];
-        $("#tabla_det_ingred tbody tr").each(function (index) {
-        var ingredient_det=new Object();  
-        ingredient_det.sequence=  index+1;    
-        //alert($(this).attr("hidden"));
+        if (validar_campos())
+        {
+
+            var id_dish=$("#txtId").val();
         
-
-            $(this).children("td").each(function (index2) {
-
-                    if( index2== 1)
-                    {
-                        ingredient_det.name=$(this).children().val(); ;                        
-                    }
-                    if( index2== 2)
-                    {
-                        ingredient_det.quantity =$(this).children().val(); ;                        
-                    }  
-                    if( index2== 3)
-                    {
-                        ingredient_det.id_unit_measure =$(this).children().val(); ;                        
-                    }                              
-            })
-
-            if(ingredient_det.name!='')
-            {
-                data_ingredient.push(ingredient_det); 
-            }
-
+            var data_ingredient = [];
+            $("#tabla_det_ingred tbody tr").each(function (index) {
+            var ingredient_det=new Object();  
+            ingredient_det.sequence=  index+1;    
+            //alert($(this).attr("hidden"));
             
-        
-        });
-        var data_dish_part_day = [];
-           
-        if($("#id_type_menu_1").is(':checked'))
-        {
-            dish_part_day=new Object(); 
-            dish_part_day.id_dish=id_dish;
-            dish_part_day.id_part_day='1';
-            data_dish_part_day.push(dish_part_day);
-        }
-        if($("#id_type_menu_2").is(':checked'))
-        {   
-            dish_part_day=new Object(); 
-            dish_part_day.id_dish=id_dish;
-            dish_part_day.id_part_day='2';
-            data_dish_part_day.push(dish_part_day);
-        }
-        if($("#id_type_menu_3").is(':checked'))
-        {
-            dish_part_day=new Object(); 
-            dish_part_day.id_dish=id_dish;
-            dish_part_day.id_part_day='3';
-            data_dish_part_day.push(dish_part_day);
-        }
-          
 
-        var obj=new Object();
-        
-        obj.id_type_dish = $("#sel_type_dish").val();
-        obj.name = $("#txtnombre").val();
-        obj.description = $("#textareadescription").val();
-        
-        obj.id=id_dish;
-        obj.ingredient = data_ingredient;
-        obj.part_day=data_dish_part_day;
+                $(this).children("td").each(function (index2) {
 
-        //alert(JSON.stringify(obj));
-
-        if(id_dish==0)
-        {
-            $.ajax({
-                url : dcms_vars.ajaxurl,
-                type: 'post',
-                data: {
-                    action : 'dcms_ajax_insert_dish',
-                    id_post: 'test-ajaxdd',
-                    datos : JSON.stringify(obj)
-                },
-                beforeSend: function(){
-                },
-                success: function(resultado){
-                    
-                    $.ajax({
-                        url : dcms_vars.ajaxurl,
-                        type: 'get',
-                        data: {
-                            action : 'dcms_ajax_get_table_platos',
-                            id_post: 'test-ajax'//id
-                        },
-                        success: function(resultado){
-                            $('#tabla_dish > tbody').empty();
-                            $('#tabla_dish tbody').append(resultado);                    
+                        if( index2== 1)
+                        {
+                            ingredient_det.name=$(this).children().val(); ;                        
                         }
-                        
-                    });
-                    $('#modalnuevo').modal('hide');
+                        if( index2== 2)
+                        {
+                            ingredient_det.quantity =$(this).children().val(); ;                        
+                        }  
+                        if( index2== 3)
+                        {
+                            ingredient_det.id_unit_measure =$(this).children().val(); ;                        
+                        }                              
+                })
+
+                if(ingredient_det.name!='')
+                {
+                    data_ingredient.push(ingredient_det); 
                 }
 
-            });
-        }
-        else
-        {   
-            $.ajax({
-                url : dcms_vars.ajaxurl,
-                type: 'post',
-                data: {
-                    action : 'dcms_ajax_update_dish',
-                    id_post: 'test-ajaxdd',
-                    datos : JSON.stringify(obj)
-                },
-                beforeSend: function(){
-                },
-                success: function(resultado){
-                    //location.reload();
-                    $('#modalnuevo').modal('hide');
-                }
-
-            });
+                
             
+            });
+            var data_dish_part_day = [];
+            
+            if($("#id_type_menu_1").is(':checked'))
+            {
+                dish_part_day=new Object(); 
+                dish_part_day.id_dish=id_dish;
+                dish_part_day.id_part_day='1';
+                data_dish_part_day.push(dish_part_day);
+            }
+            if($("#id_type_menu_2").is(':checked'))
+            {   
+                dish_part_day=new Object(); 
+                dish_part_day.id_dish=id_dish;
+                dish_part_day.id_part_day='2';
+                data_dish_part_day.push(dish_part_day);
+            }
+            if($("#id_type_menu_3").is(':checked'))
+            {
+                dish_part_day=new Object(); 
+                dish_part_day.id_dish=id_dish;
+                dish_part_day.id_part_day='3';
+                data_dish_part_day.push(dish_part_day);
+            }
+            
+
+            var obj=new Object();
+            
+            obj.id_type_dish = $("#sel_type_dish").val();
+            obj.name = $("#txtnombre").val();
+            obj.description = $("#textareadescription").val();
+            
+            obj.id=id_dish;
+            obj.ingredient = data_ingredient;
+            obj.part_day=data_dish_part_day;
+
+            //alert(JSON.stringify(obj));
+
+            if(id_dish==0)
+            {
+                $.ajax({
+                    url : dcms_vars.ajaxurl,
+                    type: 'post',
+                    data: {
+                        action : 'dcms_ajax_insert_dish',
+                        id_post: 'test-ajaxdd',
+                        datos : JSON.stringify(obj)
+                    },
+                    beforeSend: function(){
+                    },
+                    success: function(resultado){
+                        
+                        $.ajax({
+                            url : dcms_vars.ajaxurl,
+                            type: 'get',
+                            data: {
+                                action : 'dcms_ajax_get_table_platos',
+                                id_post: 'test-ajax'//id
+                            },
+                            success: function(resultado){
+                                $('#tabla_dish > tbody').empty();
+                                $('#tabla_dish tbody').append(resultado);                    
+                            }
+                            
+                        });
+                        $('#modalnuevo').modal('hide');
+                    }
+
+                });
+            }
+            else
+            {   
+                $.ajax({
+                    url : dcms_vars.ajaxurl,
+                    type: 'post',
+                    data: {
+                        action : 'dcms_ajax_update_dish',
+                        id_post: 'test-ajaxdd',
+                        datos : JSON.stringify(obj)
+                    },
+                    beforeSend: function(){
+                    },
+                    success: function(resultado){
+                        //location.reload();
+                        $('#modalnuevo').modal('hide');
+                    }
+
+                });
+                
+            }
         }
-        
+        else // Falta ingresar datos
+        {
+            //alert("Ingresar los campos obligatorios")
+
+        }
 
     });
 

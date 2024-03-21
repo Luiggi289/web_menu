@@ -215,6 +215,7 @@ class dish{
                                                 <input class="form-control" type="hidden" id="txtId" name="txtId" >
                                                 <label for="txtnombre" >Plato</label> 
                                                 <input class="form-control" type="text" id="txtnombre" name="txtnombre" placeholder="Nombre Plato" aria-label="default input example">                                             
+                                                <label id="txtnombreval" ></label> 
                                                 <br>
                                                 <label >Tipo Plato</label>
                                                 
@@ -234,6 +235,8 @@ class dish{
 
                                                         $html3='       
                                                     </select> 
+                                                   
+                                                    <label id="sel_type_dishval" ></label> 
 
                                             </div>
                                         </div>
