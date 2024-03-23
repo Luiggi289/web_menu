@@ -154,6 +154,9 @@ PRIMARY KEY (id)
 );
 DROP TABLE FOREIGN KEY
 ALTER TABLE wp_dish DROP FOREIGN KEY fk_wp_dish_wp_type_dish ;
+
+ALTER TABLE `bd_menu`.`wp_dish` ADD UNIQUE `ind_uq_name_dish` (`name`, `id_user`);
+
 -- CREAR UNIDAD MEDIDA
 CREATE TABLE IF NOT EXISTS wp_unit_measure (
 id INT NOT NULL AUTO_INCREMENT,

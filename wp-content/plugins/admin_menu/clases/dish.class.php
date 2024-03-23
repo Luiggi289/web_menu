@@ -258,8 +258,9 @@ class dish{
                                             <input class="form-check-input" type="checkbox" id="id_type_menu_3" name="id_type_menu_3" value="3">
                                             <label class="form-check-label" for="inlineCheckbox2">Cena</label>
                                             </div>
-
-                                        
+                                            <div>
+                                            <label id="check_type_menu" ></label> 
+                                            </div>
                                             <table class="wp-list-table widefat fixed striped pages" id ="tabla_det_ingred">  <thead> 
                                             <th style=display:none;>Id</th>
                                             <th >Ingrediente</th>
@@ -316,7 +317,9 @@ class dish{
                                                 <br>
                                             </div>
                                 </div>
-                                
+                                <div>
+                                &nbsp;&nbsp;&nbsp; <label id="general_dishval" ></label> 
+                                </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary btn-cerrar-modal-new-dish" data-dismiss="modal">Cerrar</button>
                                     <button type="button" class="btn btn-primary" name="btnguardar" id="btnguardardish">Guardar</button>
@@ -506,7 +509,8 @@ class dish{
             'name' =>  $obj->name,
             'id_type_dish' => $obj->id_type_dish ,
             'description' => $obj->description ,
-            'id_user' => $current_user->ID
+            'id_user' => $current_user->ID,
+            'is_enabled' => true
             ];
 
         $respuesta = $wpdb ->insert($dish,$data);

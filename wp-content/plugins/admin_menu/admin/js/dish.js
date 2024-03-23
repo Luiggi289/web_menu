@@ -23,6 +23,8 @@ jQuery(document).ready(function($){
         {
             $("#sel_type_dishval").text("");
             $("#txtnombreval").text("");
+            $("#general_dishval").text("");
+            $("#check_type_menu").text("");
             $("#titulo_modal_dish").html('Nuevo Plato');
             $("#modalnuevo").modal("show");
             $("#txtId").val('0');
@@ -231,8 +233,6 @@ jQuery(document).ready(function($){
     $(".btn-cerrar-modal-new-dish").click(function(){
         
         $('#modalnuevo').modal('hide');
-        $("#sel_type_dishval").text("");
-        $("#txtnombreval").text("");
     });
 
     $(".btn_cerrar_modal_ini_sesion").click(function(){
@@ -284,6 +284,9 @@ jQuery(document).ready(function($){
             valid= false;
 
         }
+        else{
+            $("#sel_type_dishval").text("");
+        }
 
 
         if( $("#txtnombre").val().trim()=="")
@@ -293,18 +296,39 @@ jQuery(document).ready(function($){
             valid= false;
 
         }
+        else
+        {
+            $("#txtnombreval").text("");
+        }
 
-        valid_chek=false;
         if(
             $("#id_type_menu_1").is(':checked')==false && 
             $("#id_type_menu_2").is(':checked')==false &&
             $("#id_type_menu_3").is(':checked')==false
         )
         {
-            valid_chek=true;
-            $("#txtnombreval").text("Seleccione un tipo de menú");
-            alert("Añade un chek")
+            $("#check_type_menu").text("Seleccione un tipo de menú");
+            $("#check_type_menu").css("color", "red");
+            //alert("Añade un chek")
+            valid= false;
         }
+        else
+        {
+            $("#check_type_menu").text("");
+        }
+
+        if(valid==false)
+        {
+            $("#general_dishval").text("Complete los campos obligatorios");
+            $("#general_dishval").css("color", "red");
+        }
+        else
+        {
+            $("#general_dishval").text("");
+            
+        }
+        
+
 
 
         return valid;
