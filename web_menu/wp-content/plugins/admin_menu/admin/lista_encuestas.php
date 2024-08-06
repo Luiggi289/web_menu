@@ -1,7 +1,7 @@
 <?php
     global $wpdb;
 
-    $tabla = "{$wpdb->prefix}encuestas";
+    $tabla =  "{$wpdb->prefix}encuestas";
     $tabla2 = "{$wpdb->prefix}encuestas_detalle";
     
 
