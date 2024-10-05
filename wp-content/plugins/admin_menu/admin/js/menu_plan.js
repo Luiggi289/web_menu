@@ -272,6 +272,10 @@ jQuery(document).ready(function($){
         $("#p_mensaje").html("Para guardar tu plan necesitas iniciar sesión");
         $("#modalsoliniciosession").modal("show");
         }
+        else
+        {
+            alert('Tu Plan se guardo correctamente')
+        }
     });
   
     $("#tabla_plan").on('click','.btnnuevodish, .btnagregardish',function(){

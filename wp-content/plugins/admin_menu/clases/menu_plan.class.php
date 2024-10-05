@@ -958,6 +958,7 @@ class menu_plan {
             $id_menu_week   = $value2['id_menu_week'];
         }
 
+        
         if( $id_menu_week=="0")
         {
             if($id_user<>'0')
@@ -966,15 +967,21 @@ class menu_plan {
             $id_menu_week= $this->InsertarMenuWeek('','',$fechaIni,$fechaFin );
             //$listaMenuDetalle = $this->ObtenerMenuSemana($fechaIni);
             }  
+            
         }
+        $btn_nuevo="";
+        //if($id_user=='0')
+        //{
+            $btn_nuevo="<button  class='btn btn-secondary' name='btn_guardar' id='btn_guardar' >Guardar</button>";
+        //}
+
+
 
         $head ="
         
         $modal_nuevo
         <div class='row'>
-        
 
-        
             <div class='col-md-10'>
                 <nav class='nav nav-pills nav-justified'>
                     <button type='button' class='btn btn-secondary' id='btnatras'>
@@ -1000,7 +1007,8 @@ class menu_plan {
             
                     <div  class='align-text-bottom' >
                     <button  class='btn btn-secondary' name='btnactualizar' id='btn-recomendar' >Recomendar</button>
-                    <button  class='btn btn-secondary' name='btn_guardar' id='btn_guardar' >Guardar</button>
+                    <button  class='btn btn-secondary' name='btnlimpiar' id='btn-limpiar' >Limpiar</button>
+                    $btn_nuevo
                     </div>
                     
                 
@@ -1552,6 +1560,7 @@ class menu_plan {
         $id_user=$current_user->ID;
         if ($id_user<>'0')
             {
+            
             //obtener todos los platos
             $platos = "";
             $dias = "";
@@ -1578,75 +1587,90 @@ class menu_plan {
             {
                 $id_menu_week   = $value2['id_menu_week'];
             }
-            $head ="
-            <div class='row'>
-            
 
-            
-                <div class='col-md-10'>
-                    <nav class='nav nav-pills nav-justified'>
-                        <button type='button' class='btn btn-secondary' id='btnatras' >
-                        <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-chevron-compact-left' viewBox='0 0 16 16'>
-                            <path fill-rule='evenodd' d='M9.224 1.553a.5.5 0 0 1 .223.67L6.56 8l2.888 5.776a.5.5 0 1 1-.894.448l-3-6a.5.5 0 0 1 0-.448l3-6a.5.5 0 0 1 .67-.223z'/>
-                        </svg> 
-                        </button>
-                        <label hidden id='lblfechainiprev'   class='nav-link' >$fechaIniPrev</label>
-                        <label id='lblfechaini'  class='nav-link' >$fechaIni</label>
-                        <label hidden id='lbl-id-menu-week'  class='nav-link' >$id_menu_week</label>
-                        <label class='nav-link' > -</label>
-                        <label id='lblfechafin' class='nav-link' >$fechaFin</label>
-                        <label hidden id='lblfechanext' class='nav-link' >$fechaNext</label>
+            if (isset($id_menu_week))
+            {
+                $head ="
+                <div class='row'>
+                
 
                 
-                        <button type='button' class='btn btn-secondary'  id='btnadelante' >
-                        <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-chevron-compact-right' viewBox='0 0 16 16'>
-                        <path fill-rule='evenodd' d='M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671z'/>
-                        </svg>
-                        </button>
-                        &nbsp;
+                    <div class='col-md-10'>
+                        <nav class='nav nav-pills nav-justified'>
+                            <button type='button' class='btn btn-secondary' id='btnatras' >
+                            <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-chevron-compact-left' viewBox='0 0 16 16'>
+                                <path fill-rule='evenodd' d='M9.224 1.553a.5.5 0 0 1 .223.67L6.56 8l2.888 5.776a.5.5 0 1 1-.894.448l-3-6a.5.5 0 0 1 0-.448l3-6a.5.5 0 0 1 .67-.223z'/>
+                            </svg> 
+                            </button>
+                            <label hidden id='lblfechainiprev'   class='nav-link' >$fechaIniPrev</label>
+                            <label id='lblfechaini'  class='nav-link' >$fechaIni</label>
+                            <label hidden id='lbl-id-menu-week'  class='nav-link' >$id_menu_week</label>
+                            <label class='nav-link' > -</label>
+                            <label id='lblfechafin' class='nav-link' >$fechaFin</label>
+                            <label hidden id='lblfechanext' class='nav-link' >$fechaNext</label>
 
-                        
                     
-                    </nav>
-                </div>
+                            <button type='button' class='btn btn-secondary'  id='btnadelante' >
+                            <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-chevron-compact-right' viewBox='0 0 16 16'>
+                            <path fill-rule='evenodd' d='M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671z'/>
+                            </svg>
+                            </button>
+                            &nbsp;
 
+                            
+                        
+                        </nav>
+                    </div>
+
+                    
                 
             
-        
-            </div>
-            </br>
-            <div class='row'>
-            ";
-            $tabla="<table class='table' id='tabla_plan' class='wp-list-table widefat fixed striped pages'> 
-            <thead> 
-                <th >Item</th>
-                <th style=display:none; >Id_Ingrediente</th>
-                <th >Ingrediente</th>
-            </thead>";
-            $id_platos ="0";
+                </div>
+                </br>
+                <div class='row'>
+                ";
+                $tabla="<table class='table' id='tabla_plan' class='wp-list-table widefat fixed striped pages'> 
+                <thead> 
+                    <th >Item</th>
+                    <th style=display:none; >Id_Ingrediente</th>
+                    <th >Ingrediente</th>
+                </thead>";
+                $id_platos ="0";
 
+                
+                $filas=$this->ObtenerListaCompra($fechaIni,$fechaFin);
+
+
+                //$html = $this->formOpen($nombre,$dia);
+            // $html .=$dias;
+                $html =$head;
+                $html .= $tabla.$filas."</table></div>";
+                $html .= $this->formClose();
             
-            $filas=$this->ObtenerListaCompra($fechaIni,$fechaFin);
-
-
-            //$html = $this->formOpen($nombre,$dia);
-        // $html .=$dias;
-            $html =$head;
-            $html .= $tabla.$filas."</table></div>";
-            $html .= $this->formClose();
+            }
+            else{
+                $host=$_SERVER['HTTP_HOST'];
+                $protocol=$_SERVER['SERVER_PROTOCOL'];
+                $html ="<p>  Para ver la lista de compras primero debe crear su plan </p>
+                        <div class='modal-footer'>
+                        <a type='button' class='btn btn-primary' name='btn_plan' id='btn_plan' href='$protocol://$host/web_menu/plan/'>Crear Plan</a>
+                        </div>
+                "; 
+             }
         
         }
-        else{
-            $host=$_SERVER['HTTP_HOST'];
-            $protocol=$_SERVER['SERVER_PROTOCOL'];
-            $html ="
-            <p> Para ver la lista de compra de su plan necesita iniciar sessión </p>
-            <div class='modal-footer'>
-            <a type='button' class='btn btn-primary' name='btn_inicio_sesion' id='btn_inicio_sesion' href='$protocol://$host/web_menu/login/'>Iniciar Sesión</a>
-            </div>
-            ";
+        
+    else{
+        $host=$_SERVER['HTTP_HOST'];
+        $protocol=$_SERVER['SERVER_PROTOCOL'];
+        $html ="
+        <p> Para ver la lista de compra de su plan necesita iniciar sessión </p>
+        <div class='modal-footer'>
+        <a type='button' class='btn btn-primary' name='btn_inicio_sesion' id='btn_inicio_sesion' href='$protocol://$host/web_menu/login/'>Iniciar Sesión</a>
+        </div>
+        ";
 
-        }
+    }
 
         return $html;
 
