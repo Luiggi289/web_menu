@@ -336,6 +336,40 @@ class menu_plan {
     
     }
 
+    function ActualizarMenuWeekDet($id_menu_week,$id_dish,$date_menu,$id_part_day,$id_day,$id_dish_old)
+    {
+        global $wpdb;
+        $menu_week_det = "{$wpdb->prefix}menu_week_det";
+
+        $respuesta = $wpdb->update(
+            $menu_week_det, 
+            array(
+                'id_dish' => $id_dish // Columna y valor que deseas actualizar
+            ),
+            array(
+                'id_dish' => $id_dish_old ,// Condición para saber qué registro actualizar
+                'id_menu_week'  => $id_menu_week,
+                'date_menu' => $date_menu,
+                'id_part_day' => $id_part_day
+
+            )
+        );
+
+        if ($respuesta == false) {
+            // Si hay error, capturarlo
+            $error_message = $wpdb->last_error;
+            
+            if (!empty($error_message)) {
+                // Si hay un error específico, mostrarlo
+                return 'Error en la actualización: ' . $error_message;
+            } else {
+                return 'No se pudo realizar la actualización, pero no hay mensaje de error.';
+            }
+        }
+
+    
+    }
+
     
     public function ObtenerIdMenuSemana($start_date){
         global $wpdb;
@@ -400,7 +434,7 @@ class menu_plan {
         ON B.id_day=E.id
         WHERE a.start_date='$start_date'
         and a.id_user=$id_user
-        order by id_day,id_part_day,id_menu_week,b.created_date_time  
+        order by date_menu,id_part_day,b.created_date_time 
         ";
         $datos = $wpdb->get_results($query,ARRAY_A);
         if(empty($datos)){
@@ -575,8 +609,10 @@ class menu_plan {
                                             
                                     
                                             <label hidden id="txtid_part_day"> 0</label>
+                                            <label hidden id="txttype_action"> 0</label>
                                             <label hidden id="txtindexrow"> 0</label>
                                             <label hidden id="txtindexcol"> 0</label>
+                                            <label hidden id="txtid_dish"> 0</label>
                                             <div class="input-group mb-3">
                                             <input type="text" class="form-control" placeholder="Buscar Plato" id="txtplatobuscar" >
                                             <button class="btn btn-outline-secondary" type="button" id="button-buscar-dish">
@@ -661,24 +697,23 @@ class menu_plan {
         return $html1;
     }
 
-    function obtenerCeldaPlato($plato,$id_plato,$id_part_day){
+    function obtenerCeldaPlato($plato,$id_plato,$id_part_day,$date_menu){
         $html="";
         if ($plato!="")
         {
+            $id_boton=$id_plato."_".$id_part_day;
 
             $html="
             <div class='btn-group dropend' role='group'>
                                 
-                                <button type='button' class='btn btn-outline-secondary btn-sm btn_plato' data-bs-toggle='dropdown' aria-expanded='false'
-                                 value='$id_plato' style='color: black;border-radius: 12px ;  border: 1px solid #DAD4D3'>
+                                <button type='button' id='$id_boton' class='btn btn-outline-secondary btn-sm btn_plato' data-bs-toggle='dropdown' aria-expanded='false'
+                                 attr-IdDish='$id_plato' attr-IdPartDay='$id_part_day' style='color: black;border-radius: 6px ;  border: 1px solid #DAD4D3'>
                                 $plato ⁝
                                 </button>
                                 <ul class='dropdown-menu'>
-                                <li><a class='dropdown-item btn_plato_ver' attr-IdDish='$id_plato' href='#'>Ver  </a></li>
-                                <li><a class='dropdown-item btnagregardish' attr-IdDish='$id_plato'  attr-IdPartDay='$id_part_day' href='#'>Agregar</a></li>
-                                <li><a class='dropdown-item btn_plato_camb' attr-IdDish='$id_plato' href='#'>Cambiar</a></li>
-                                <li><a class='dropdown-item btn_plato_recom' attr-IdDish='$id_plato' href='#'>Recomendar</a></li>
-                                <li><a  class='dropdown-item btn_plato_eli' onclick='eliminarplato(this)' href='#'>Eliminar</a></li>
+                                <li><a class='dropdown-item btn_plato_ver'   href='#'>Ver  </a></li>
+                                <li><a class='dropdown-item btn_plato_camb'  href='#'>Cambiar</a></li>
+                                <li><a  class='dropdown-item btn_plato_eli'  href='#'>Eliminar</a></li>
                                 </ul>
             </div>
 
@@ -693,57 +728,6 @@ class menu_plan {
     
     }
 
-    function fromInput($array_plato_desayuno,$array_plato_almuerzo,$array_plato_cena,$dia,$id_dia
-    ,$id_dish_desayuno,$id_dish_almuerzo,$id_dish_cena, $date_menu
-    ){
-       $celda_plato_desayuno="";
-       $celda_plato_almuerzo="";
-       $celda_plato_cena="";
-       
-       
-
-       foreach ($array_plato_desayuno as $key => $value2) {
-        $celda_plato_desayuno.=$this->obtenerCeldaPlato($value2['dish_name'],$value2['id_dish'],1);
-        }
-
-        foreach ($array_plato_almuerzo as $key => $value2) {
-            $celda_plato_almuerzo.=$this->obtenerCeldaPlato($value2['dish_name'],$value2['id_dish'],2);
-            }
-
-        foreach ($array_plato_cena as $key => $value2) {
-            $celda_plato_cena.=$this->obtenerCeldaPlato($value2['dish_name'],$value2['id_dish'],3);
-            }
-       // if($tipo == 1){
-            $html="
-            <tr>
-                <td>$dia </td>
-                <td>$celda_plato_desayuno
-                <button type='button'  attr-IdDish='$id_dish_desayuno' attr-IdPartDay='1' id='btnnuevodish' class='btn btn-outline-secondary btn-sm btnnuevodish' style='color: black;border-radius: 8px ;  border: 1px solid #DAD4D3'>+</button>
-                </td>
-                <td style=display:none; >$id_dia</td>
-                <td style=display:none;>$date_menu</td>
-                <td>$celda_plato_almuerzo
-                <button type='button'  attr-IdDish='$id_dish_almuerzo'  attr-IdPartDay='2' id='btnnuevodish' class='btn btn-outline-secondary btn-sm btnnuevodish' style='color: black;border-radius: 8px ;  border: 1px solid #DAD4D3'>+</button>
-                </td>
-                <td>
-                $celda_plato_cena
-                <button type='button'  attr-IdDish='$id_dish_cena' attr-IdPartDay='3' id='btnnuevodish' class='btn btn-outline-secondary btn-sm btnnuevodish' style='color: black;border-radius: 8px ;  border: 1px solid #DAD4D3'>+</button>
-                </td>
-                <td style=display:none;>$id_dish_almuerzo</td> 
-                <td style=display:none;>$id_dish_cena</td>
-               
-            </tr>
-        ";
-                
-            
-        
-       // }//elseif ($tipo == 2) {
-            
-       // }else{
-
-       // }
-        return $html;
-    }
 
 
     function fromInputIngredient($item,$id_ingredient, $ingredient_name)
@@ -969,12 +953,7 @@ class menu_plan {
             }  
             
         }
-        $btn_nuevo="";
-        //if($id_user=='0')
-        //{
-            $btn_nuevo="<button  class='btn btn-secondary' name='btn_guardar' id='btn_guardar' >Guardar</button>";
-        //}
-
+        
 
 
         $head ="
@@ -984,11 +963,19 @@ class menu_plan {
 
             <div class='col-md-10'>
                 <nav class='nav nav-pills nav-justified'>
-                    <button type='button' class='btn btn-secondary' id='btnatras'>
+                    <button type='button' class='btn btn-light' id='btnatras'>
                     <svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='currentColor' class='bi bi-chevron-compact-left' viewBox='0 0 16 16'>
                         <path fill-rule='evenodd' d='M9.224 1.553a.5.5 0 0 1 .223.67L6.56 8l2.888 5.776a.5.5 0 1 1-.894.448l-3-6a.5.5 0 0 1 0-.448l3-6a.5.5 0 0 1 .67-.223z'/>
                     </svg> 
                     </button>
+                    &nbsp;
+
+                    <button type='button' class='btn btn-light'  id='btnadelante' >
+                    <svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='currentColor' class='bi bi-chevron-compact-right' viewBox='0 0 16 16'>
+                    <path fill-rule='evenodd' d='M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671z'/>
+                    </svg>
+                    </button>
+
                     <label hidden id='lblfechainiprev'   class='nav-link' >$fechaIniPrev</label>
                     <label id='lblfechaini'  class='nav-link' >$fechaIni</label>
                     <label hidden id='lbl-id-menu-week'  class='nav-link' >$id_menu_week</label>
@@ -998,17 +985,11 @@ class menu_plan {
                     <label hidden id='lblfechanext' class='nav-link' >$fechaNext</label>
 
             
-                    <button type='button' class='btn btn-secondary'  id='btnadelante' >
-                    <svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='currentColor' class='bi bi-chevron-compact-right' viewBox='0 0 16 16'>
-                    <path fill-rule='evenodd' d='M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671z'/>
-                    </svg>
-                    </button>
-                    &nbsp;
+
             
                     <div  class='align-text-bottom' >
-                    <button  class='btn btn-secondary' name='btnactualizar' id='btn-recomendar' >Recomendar</button>
-                    <button  class='btn btn-secondary' name='btnlimpiar' id='btn-limpiar' >Limpiar</button>
-                    $btn_nuevo
+                    <button  class='btn btn-outline-secondary' name='btnactualizar' id='btn-recomendar' >Recomendar</button>
+                    <button  class='btn btn-outline-secondary' name='btnlimpiar' id='btn-limpiar' >Limpiar</button>
                     </div>
                     
                 
@@ -1019,27 +1000,14 @@ class menu_plan {
         
       
         </div>
-        </br>
+        
         <div class='row'>
         ";
-        $tabla="<table class='table' id='tabla_plan' class='wp-list-table widefat fixed striped pages'> 
-        <thead> 
-            <th >Dia</th>
-            <th >Desayuno</th>
-            <th style=display:none;>id_dia</th>
-            <th style=display:none;>Fecha</th>
-            <th >Almuerzo</th>
-            <th >Cena</th>
-            <th style=display:none;>id_plato_almuerzo</th>
-            <th style=display:none;>id_plato_cena</th>
-        </thead>";
+        $tabla="<table  id='tabla_plan' class='wp-list-table widefat fixed striped pages'> ";
         $id_platos ="0";
 
         
        $platos=$this->ObtenerPlatos($fechaIni,$fechaFin,$id_menu_week);
-       
-
-
         //$html = $this->formOpen($nombre,$dia);
        // $html .=$dias;
         $html =$head.$html_ver_plato.$html_sol_iniciosesion;
@@ -1052,16 +1020,11 @@ class menu_plan {
     }
 
 
+    
 
-    function ObtenerPlatos($fechaIni,$fechaFin,$id_menu_week)
+    function CrearTablaPlatos($fechaIni,$fechaFin,$id_menu_week,$listaMenuDetalle)
     {
         
-        $listaMenuDetalle = $this->ObtenerMenuSemana($fechaIni);
-
-        $platos ="";
-        
-        if (count($listaMenuDetalle)>0)
-        {
 
             $begin = new DateTime($fechaIni );
             $end = new DateTime($fechaFin );
@@ -1074,11 +1037,16 @@ class menu_plan {
             $daterange = new DatePeriod($begin, $interval ,$end);
            
 
-    
+            $tipo_plato="";
+
+            $head="<thead> <th> </th>";
+
+            $dates="<tr style='display: none;'> <td></td>";
+            $days="<tr style='display: none;'> <td></td>";
 
             foreach($daterange as $date)
             {
-                
+
                 $id_dia=$date->format('w');
                 $dia_mes=$date->format('d');
                 $date_menu=$date->format('Y-m-d');  
@@ -1088,107 +1056,136 @@ class menu_plan {
                 }
             
                 $dia=$this->ObtenerDia($id_dia,$dia_mes);
+                $head=$head." <th >$dia</th>";
+                $dates=$dates." <td >$date_menu</td>";
+                $days=$days." <td >$id_dia</td>";
+                
+
+            }
+
+            $head=$head."</thead>";
+            $dates=$dates."</tr>";
+            $days=$days."</tr>";
+            $platos_desayuno_fila="";
+            $platos_almuerzo_fila="";
+            $platos_cena_fila="";
+
+            foreach($daterange as $date)
+            {
+          
+                $id_dia=$date->format('w');
+                $dia_mes=$date->format('d');
+                $date_menu=$date->format('Y-m-d');  
+                if($id_dia=='0')
+                {
+                    $id_dia='7';
+                }
+            
+                $dia=$this->ObtenerDia($id_dia,$dia_mes);
+
                 $existe_fecha="0";
-                $plato_desayuno="";
-                $plato_almuerzo="";
-                $plato_cena="";
+                
+                $platos_desayuno ="";
+                $platos_almuerzo ="";
+                $platos_cena ="";
+
                 $id_dish_desayuno="0";
                 $id_dish_almuerzo="0";
                 $id_dish_cena="0";
-                $array_plato_desayuno = Array();
-                $array_plato_almuerzo = Array();
-                $array_plato_cena = Array();
+                
                     foreach ($listaMenuDetalle as $key => $value2) {
+
                         if($value2['date_menu']==$date_menu)
                         {
                             $existe_fecha="1";
+                            $plato_desayuno="";
+                            $plato_almuerzo="";
+                            $plato_cena="";
                             if($value2['id_part_day']==1)
                             {    
-                                $array_plato_desayuno_aux  =  
-                                Array
-                                (
-                                    'dish_name' =>$value2['dish_name'],
-                                    'id_dish' =>$value2['id_dish']
-                                );
+                               
                                 $id_dish_desayuno=$value2['id_dish'];
+                                $plato_desayuno=$value2['dish_name'];
+                                $platos_desayuno.=$this->obtenerCeldaPlato($value2['dish_name'],$value2['id_dish'],$value2['id_part_day'],$value2['date_menu']);
 
-                                array_push($array_plato_desayuno, $array_plato_desayuno_aux );
-                            }
-                            if($value2['id_part_day']==2)
-                            {                            
-                                $array_plato_almuerzo_aux  =  
-                                Array
-                                (
-                                    'dish_name' =>$value2['dish_name'],
-                                    'id_dish' =>$value2['id_dish']
-                                );
-                                $id_dish_almuerzo=$value2['id_dish'];
-
-                                array_push($array_plato_almuerzo, $array_plato_almuerzo_aux );
-                            }
-                            if($value2['id_part_day']==3)
-                            {                            
-                                $array_plato_cena_aux  =  
-                                Array
-                                (
-                                    'dish_name' =>$value2['dish_name'],
-                                    'id_dish' =>$value2['id_dish']
-                                );
-
-                                $id_dish_cena=$value2['id_dish'];
-
-                                array_push($array_plato_cena, $array_plato_cena_aux );
                             }
                             
+                            if($value2['id_part_day']==2)
+                            {                            
+                               
+                                $id_dish_almuerzo=$value2['id_dish'];
+                                $plato_almuerzo=$value2['dish_name'];
+                                $platos_almuerzo.=$this->obtenerCeldaPlato($value2['dish_name'],$value2['id_dish'],$value2['id_part_day'],$value2['date_menu']);
+
+                            }
+                           
+                            if($value2['id_part_day']==3)
+                            {                            
+                                
+                                $id_dish_cena=$value2['id_dish'];
+                                $plato_cena=$value2['dish_name'];
+                                $platos_cena.=$this->obtenerCeldaPlato($value2['dish_name'],$value2['id_dish'],$value2['id_part_day'],$value2['date_menu']);
+
+
+                            }
+                            
+                            
                         }
+
                         
+                    
                         
                     }
-                $platos .= $this->fromInput($array_plato_desayuno,$array_plato_almuerzo,$array_plato_cena
-                                            ,$dia,$id_dia,$id_dish_desayuno,$id_dish_almuerzo,$id_dish_cena
-                                        ,$date_menu);
                 
-
+                    $platos_desayuno_fila.=" <td> $platos_desayuno <button type='button'  attr-IdPartDay='1' id='btnnuevodish' class='btn btn-outline-secondary btn-sm btnnuevodish' style='color: black;border-radius: 3px ;  border: 1px solid #DAD4D3'>+</button></td>";
+                    $platos_almuerzo_fila.=" <td> $platos_almuerzo <button type='button'  attr-IdPartDay='2' id='btnnuevodish' class='btn btn-outline-secondary btn-sm btnnuevodish' style='color: black;border-radius: 3px ;  border: 1px solid #DAD4D3'>+</button></td>";
+                    $platos_cena_fila.=" <td> $platos_cena         <button type='button'  attr-IdPartDay='3' id='btnnuevodish' class='btn btn-outline-secondary btn-sm btnnuevodish' style='color: black;border-radius: 3px ;  border: 1px solid #DAD4D3'>+</button></td>";
                 
-
-        // function fromInput($array_plato_desayuno,$array_plato_almuerzo,$array_plato_cena,$dia,$id_dia
-        //,$id_dish_desayuno,$id_dish_almuerzo,$id_dish_cena, $date_menu
-
+                                        
             }
-            
 
-        }
+        $platos_desayuno_fila="<tr> <td>Desayuno</td>$platos_desayuno_fila</tr>";
+        $platos_almuerzo_fila= "<tr> <td>Almuerzo</td> $platos_almuerzo_fila </tr>";
+        $platos_cena_fila= " <tr> <td>Cena</td> $platos_cena_fila</tr>";
 
-        else 
 
+        return $head.$dates.$days.$platos_desayuno_fila.$platos_almuerzo_fila.$platos_cena_fila;
+        
+    }
+
+
+    function ObtenerPlatos($fechaIni,$fechaFin,$id_menu_week)
+    {
+        $html="";
+        $listaMenuDetalle = $this->ObtenerMenuSemana($fechaIni);
+        if (count($listaMenuDetalle)>0)
         {
-
+        
+            $html=$this->CrearTablaPlatos($fechaIni,$fechaFin,$id_menu_week,$listaMenuDetalle);
+        }
+        else
+        {
             $fechaActual = date('Y-m-d');
-
             if (date("D")=="Mon"){
                 $fechaIniActual=$fechaActual;
             }
             else{
                 $fechaIniActual = date("Y-m-d", strtotime('last Monday', time()));
             }
-    
-            //$fechaIniPrev=strtotime('-7 day', strtotime($fechaIniActual));
-            //$fechaIniPrev = date('Y-m-d', $fechaIniPrev);
             
-            if ($fechaIniActual==$fechaIni)
-            {
+            //if ($fechaIniActual==$fechaIni)
+            //{
             $datos='{"id":"'.$id_menu_week.'","start_date":"'.$fechaIni.'","end_date":"'.$fechaFin.'"} ';
-            $platos_json= json_decode($this->ArmadorTabla($datos));
-            $platos=$platos_json->data;
-            }
+            $platos_json= json_decode($this->ArmadorTabla($datos,$fechaIni));
+            $html=$platos_json->data;
+            //}
+
 
         }
 
-        return $platos ;
-   
+        return $html;
+
     }
-
-
 
 
     function ArmadorTablaListaCompra($start_date){
@@ -1346,7 +1343,8 @@ class menu_plan {
         $listaMenuDetalleAlmuerzo = $this->ObtenerMenuDetalle(2); 
 
         $indice=0;
-        foreach($daterange as $date){
+        foreach($daterange as $date)
+        {
 
             $id_dia=$date->format('w');
             $dia_mes=$date->format('d');
@@ -1424,19 +1422,21 @@ class menu_plan {
                          // ,'');
                             
                           
-             $platos .= $this->fromInput($array_plato_desayuno,$array_plato_almuerzo,$array_plato_almuerzo,$dia ,$id_dia
+             /*$platos .= $this->fromInput($array_plato_desayuno,$array_plato_almuerzo,$array_plato_almuerzo,$dia ,$id_dia
                 ,$id_plato_desayuno
                 ,$id_plato_almuerzo
                 ,$id_plato_almuerzo
                 ,$date_menu
                 );
+                */
                 
         $indice=$indice+1;
         }
         
 
        // $platos=json_encode($listaMenuDetalleDesayuno);
-        $html = $tabla.$platos;
+        $listaMenuDetalle = $this->ObtenerMenuSemana($obj->start_date);
+        $html=$this->CrearTablaPlatos($obj->start_date ,$obj->end_date ,$id_menu_week,$listaMenuDetalle);
         
 
         $result = Array
@@ -1448,6 +1448,7 @@ class menu_plan {
         );
 
         return json_encode($result);
+        
 
     }
 

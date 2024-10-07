@@ -140,6 +140,7 @@ jQuery(document).ready(function($){
                 det=obj.data;
 
                 $('#tabla_plan > tbody').empty();
+                $('#tabla_plan > thead').empty();
                 $('#tabla_plan tbody').append(det);
                 	
 			}
@@ -282,10 +283,52 @@ jQuery(document).ready(function($){
 
         $("#modalselnuevo").modal("show");
         $("#txtplatobuscar").val("");
-        id_part_day=$(this).attr("attr-IdPartDay");
+        var IndexcurrentRow=($(this).parents('tr')).index();
+        id_part_day=IndexcurrentRow-1;        
+        $("#txtid_part_day").html(id_part_day);
+        $("#txttype_action").html("agregar");          
+        $('#tabla_buscar_plato > tbody').empty();
+        var currentRow=($(this).parents('tr'));
+        var currentIndex=($(this).parents('td'));
+        $("#txtindexrow").html(currentRow.index());
+        $("#txtindexcol").html(currentIndex.index());
+        /*
+        $.ajax({
+            url : dcms_vars.ajaxurl+'?id_part_day='+id_part_day +'&id_dish='+  id_dish,
+            type: 'get',
+            data: {
+                action : 'dcms_buscar_plato_rand',
+                id_post: 'test-ajax'//id
+            },
+            beforeSend: function(){
+
+            },
+            success: function(resultado){
+                
+                $('#tabla_buscar_plato > tbody').empty();
+                $('#tabla_buscar_plato tbody').append(resultado);
+                
+            }
+
+
+        });
+        */
+
+
         
-        id_dish=$(this).attr("attr-IdDish");
-        $("#txtid_part_day").html(id_part_day);        
+
+    });
+
+    $("#tabla_plan").on('click','.btn_plato_camb',function(){
+
+        $("#modalselnuevo").modal("show");
+        $("#txtplatobuscar").val("");
+        id_part_day=$(this).parent().parent().siblings().attr("attr-IdPartDay");
+        id_dish=$(this).parent().parent().siblings().attr("attr-IdDish");
+
+        $("#txtid_dish").html(id_dish);  
+        $("#txtid_part_day").html(id_part_day);  
+        $("#txttype_action").html("cambiar");        
         $('#tabla_buscar_plato > tbody').empty();
         var currentRow=($(this).parents('tr'));
         var currentIndex=($(this).parents('td'));
@@ -368,7 +411,7 @@ jQuery(document).ready(function($){
         
 
        // $("#titulo_modal_dish").html('Ver Plato');
-        $("#txtId").val($(this).attr("attr-IdDish"));
+        $("#txtId").val($(this).parent().parent().siblings().attr("attr-IdDish"));
         $("#modal-ver-plato").modal("show");
 
        // $("#txtnombre").attr("readonly", true);
@@ -529,15 +572,13 @@ jQuery(document).ready(function($){
 
         var html="  <div class='btn-group dropend' role='group'> \
         <button type='button' class='btn btn-outline-secondary btn-sm btn_plato' data-bs-toggle='dropdown' aria-expanded='false' \
-            value="+id_dish+" style='color: black;border-radius: 12px ;  border: 1px solid #DAD4D3'> \
+            attr-IdDish='"+id_dish+"' attr-IdPartDay='"+id_part_day+"' style='color: black;border-radius: 6px ;  border: 1px solid #DAD4D3'> \
             "+dish.replace("(Recomendado)","")+" ⁝ \
         </button> \
         <ul class='dropdown-menu'> \
-        <li><a class='dropdown-item btn_plato_ver' attr-IdDish='"+id_dish+"' href='#'>Ver</a></li> \
-        <li><a class='dropdown-item btnagregardish' attr-IdDish='"+id_dish+"' attr-IdPartDay='"+id_part_day+"'   href='#'>Agregar</a></li> \
-        <li><a class='dropdown-item btn_plato_camb' attr-IdDish='"+id_dish+"' href='#'>Cambiar</a></li> \
-        <li><a class='dropdown-item btn_plato_recom' attr-IdDish='"+id_dish+"' href='#'>Recomendar</a></li> \
-        <li><a class='dropdown-item btn_plato_eli'  onclick='eliminarplato(this)' href='#'>Eliminar</a></li> \
+        <li><a class='dropdown-item btn_plato_ver'  href='#'>Ver</a></li> \
+        <li><a class='dropdown-item btn_plato_camb' href='#'>Cambiar</a></li> \
+        <li><a class='dropdown-item btn_plato_eli'  href='#'>Eliminar</a></li> \
         </ul> \
     </div>   ";
     return html;
@@ -551,22 +592,31 @@ jQuery(document).ready(function($){
         var IndexcurrentCol =$("#txtindexcol").html();
         var id_menu_week =$("#lbl-id-menu-week").html(); 
         var id_part_day = $("#txtid_part_day").html();
+        var id_dish_old = $("#txtid_dish").html();
+        var type_action = $("#txttype_action").html();
         var currentseldt=($(this).parents('td'));
         var currentRowPlan=$('#tabla_plan tbody tr:nth('+IndexcurrentRow+')');
         var id_dish=currentseldt.prev().prev().html();
-        var html=obtenerhtmldish(id_dish,id_part_day,currentseldt.prev().html());
+        var plato=currentseldt.prev().html().replace("(Recomendado)","");
+        
+        
+        if(type_action=='agregar')
+        {
+            var html=obtenerhtmldish(id_dish,id_part_day,plato);
+            currentRowPlan.find('td:eq('+IndexcurrentCol+')').find('.btnnuevodish').before(html);
+        }
+        if(type_action=='cambiar')
+            {
+                id_boton=id_dish_old+"_"+id_part_day;
+                currentRowPlan.find('td:eq('+IndexcurrentCol+')').find('#'+id_boton).html(plato+" ⁝");
+                currentRowPlan.find('td:eq('+IndexcurrentCol+')').find('#'+id_boton).attr('attr-IdDish', id_dish);
+//                currentRowPlan.find('td:eq('+IndexcurrentCol+')').find('.btn_plato').value(id_dish+" ⁝");
+                //alert($("#tabla_plan tr").eq(IndexcurrentRow).find('td:eq('+IndexcurrentCol+')').find('.btn_plato').html());
+            }
        
-        currentRowPlan.find('td:eq('+IndexcurrentCol+')').find('.btnnuevodish').before(html);
-        var date_menu=currentRowPlan.find("td:eq(3)").text();
-        var id_day=currentRowPlan.find("td:eq(2)").text();
-        var id_part_day=0;
+        var date_menu = $("#tabla_plan tr").eq(1).find("td").eq(IndexcurrentCol).text();
+        var id_day = $("#tabla_plan tr").eq(2).find("td").eq(IndexcurrentCol).text();
 
-        if(IndexcurrentCol==1)
-        {id_part_day=1;}
-        if(IndexcurrentCol==4)
-        {id_part_day=2;}
-        if(IndexcurrentCol==5)
-        {id_part_day=3;}
         
         var obj=new Object();
         obj.id_menu_week =  id_menu_week;
@@ -574,25 +624,54 @@ jQuery(document).ready(function($){
         obj.date_menu = date_menu;
         obj.id_part_day = id_part_day;
         obj.id_day = id_day;
-        
-        
-        $.ajax({
-			url : dcms_vars.ajaxurl,
-			type: 'post',
-			data: {
-				action : 'dcms_ajax_insert_menu_week_det',
-				id_post: 'test-ajaxdd',
-                datos : JSON.stringify(obj)
-			},
-			beforeSend: function(){
-			},
-			success: function(resultado){
+        if(type_action=='cambiar')
+        {
+            obj.id_dish_old = id_dish_old;
+        }
+            
 
-               
-                	
-			}
+        if(type_action=='agregar')
+        {
+            $.ajax({
+                url : dcms_vars.ajaxurl,
+                type: 'post',
+                data: {
+                    action : 'dcms_ajax_insert_menu_week_det',
+                    id_post: 'test-ajaxdd',
+                    datos : JSON.stringify(obj)
+                },
+                beforeSend: function(){
+                },
+                success: function(resultado){
 
-		});
+                        
+                }
+
+            });
+        }
+        if(type_action=='cambiar')
+        {
+            $.ajax({
+                url : dcms_vars.ajaxurl,
+                type: 'post',
+                data: {
+                    action : 'dcms_ajax_update_menu_week_det',
+                    id_post: 'test-ajaxdd2',
+                    datos : JSON.stringify(obj)
+                },
+                beforeSend: function(){
+                },
+                success: function(resultado){
+
+                        
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log('Error: ', textStatus, errorThrown);
+                }
+
+            });
+        }
+        
 
         $('#modalselnuevo').modal('hide');
  
@@ -601,20 +680,16 @@ jQuery(document).ready(function($){
     $("#tabla_plan").on('click','.btn_plato_eli',function(){
     
         var id_menu_week =$("#lbl-id-menu-week").html(); 
-        var id_dish= $(this).parent().parent().siblings().val();
-        var id_part_day=0;
+        //var id_dish= $(this).parent().parent().siblings().val();
+        var id_dish=$(this).parent().parent().siblings().attr("attr-IdDish");
+        var id_part_day=$(this).parent().parent().siblings().attr("attr-IdPartDay");
 
         var IndexcurrentCol=($(this).parents('td')).index();
-        var date_menu=($(this).parents('tr')).find("td:eq(3)").text();
+        //var IndexcurrentRow=($(this).parents('tr')).index();
 
-        
+        var date_menu = $("#tabla_plan tr").eq(1).find("td").eq(IndexcurrentCol).text();
+ 
 
-        if(IndexcurrentCol==1)
-        {id_part_day=1;}
-        if(IndexcurrentCol==4)
-        {id_part_day=2;}
-        if(IndexcurrentCol==5)
-        {id_part_day=3;}
         
         var obj=new Object();
         obj.id_menu_week =  id_menu_week;
@@ -651,7 +726,7 @@ jQuery(document).ready(function($){
     
         var id_menu_week =$("#lbl-id-menu-week").html(); 
         //var id_dish= $(this).parent().parent().siblings().val();
-        var id_dish=$(this).attr("attr-IdDish");
+        var id_dish=$(this).parent().parent().siblings().attr("attr-IdDish");
         
         var id_part_day=0;
 

@@ -286,6 +286,33 @@ function dcms_insert_menu_week_det()
 	wp_die();
 }
 
+add_action('wp_ajax_nopriv_dcms_ajax_update_menu_week_det','dcms_update_menu_week_det');
+add_action('wp_ajax_dcms_ajax_update_menu_week_det','dcms_update_menu_week_det');
+function dcms_update_menu_week_det()
+{
+    $html="fdddd";
+   $_short = new menu_plan;
+   
+    if( $_POST["datos"])
+    {
+        $datos= $_POST["datos"];
+    }
+    
+    
+    $obj = json_decode(str_replace("\\", "", $datos));
+
+    $result = $_short->ActualizarMenuWeekDet(
+        $obj->id_menu_week,
+        $obj->id_dish,
+        $obj->date_menu,
+        $obj->id_part_day,
+        $obj->id_day,
+        $obj->id_dish_old
+    );
+    echo $result;
+	wp_die();
+}
+
 
 add_action('wp_ajax_nopriv_dcms_ajax_insert_dish','dcms_insert_dish');
 add_action('wp_ajax_dcms_ajax_insert_dish','dcms_insert_dish');
