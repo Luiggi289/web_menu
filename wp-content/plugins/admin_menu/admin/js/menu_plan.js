@@ -168,6 +168,10 @@ jQuery(document).ready(function($){
         
         var txtfechainiprev = $("#lblfechainiprev").html();//$("#lblfechaini").html();
         var lbl_id_user = $("#lbl-id-user").html()
+        var txtfechainiprev_aux=txtfechainiprev+'T00:00:00';
+        var newDate = new Date(txtfechainiprev_aux);
+        $('#calendar-container').datepicker('setDate', newDate);
+
         
         if (lbl_id_user!='0')
         {
@@ -192,8 +196,7 @@ jQuery(document).ready(function($){
                     html="";
                     det=obj.data;
 
-                    $('#tabla_plan > tbody').empty();
-                    $('#tabla_plan tbody').append(det);
+                    $('#tabla_plan').html(det) ;
 
                 }
 
@@ -207,6 +210,8 @@ jQuery(document).ready(function($){
             $("#p_mensaje").html("Para ver tu planificación de otras fechas necesitas iniciar sesión");
             $("#modalsoliniciosession").modal("show");
         }
+
+        
 		});
 
         $("#btnadelante").click(function(){
@@ -214,8 +219,14 @@ jQuery(document).ready(function($){
            
         
             var txtfechanext = $("#lblfechanext").html();//$("#lblfechaini").html();
-            
+
             var lbl_id_user = $("#lbl-id-user").html()
+            alert(txtfechanext);
+            var txtfechanext_aux=txtfechanext+'T00:00:00';
+            var newDate = new Date(txtfechanext_aux);
+            $('#calendar-container').datepicker('setDate', newDate);
+
+
         
             if (lbl_id_user!='0')
             {
@@ -242,15 +253,8 @@ jQuery(document).ready(function($){
                         html="";
                         det=obj.data;
 
-                        $('#tabla_plan > tbody').empty();
-                        $('#tabla_plan tbody').append(det);
-
-                        /*currentRow.find("td:eq(1)").text(obj.plato); 
-                        currentRow.find("td:eq(3)").text(obj.id_plato); 
-                    */
-                        
-                        
-                        //$('#post-'+id).find('.entry-content').html(resultado);		
+                        $('#tabla_plan').html(det) ;
+	
                     }
         
         
@@ -572,7 +576,7 @@ jQuery(document).ready(function($){
 
         var html="  <div class='btn-group dropend' role='group'> \
         <button type='button' class='btn btn-outline-secondary btn-sm btn_plato' data-bs-toggle='dropdown' aria-expanded='false' \
-            attr-IdDish='"+id_dish+"' attr-IdPartDay='"+id_part_day+"' style='color: black;border-radius: 6px ;  border: 1px solid #DAD4D3'> \
+            attr-IdDish='"+id_dish+"' attr-IdPartDay='"+id_part_day+"' style='background-color: #A8E6A9 ; color:black ; border: 1.5px solid white  '> \
             "+dish.replace("(Recomendado)","")+" ⁝ \
         </button> \
         <ul class='dropdown-menu'> \
@@ -720,6 +724,45 @@ jQuery(document).ready(function($){
         
 
     });
+
+    $("#btn-limpiar").click(function(){
+
+
+
+        
+
+
+        var id_menu_week =$("#lbl-id-menu-week").html(); 
+        
+        
+        var obj=new Object();
+        obj.id_menu_week =  id_menu_week;
+
+        
+        
+        $.ajax({
+			url : dcms_vars.ajaxurl,
+			type: 'post',
+			data: {
+				action : 'dcms_ajax_eliminar_menu_week',
+				id_post: 'test-ajaxdd',
+                datos : JSON.stringify(obj)
+			},
+			beforeSend: function(){
+			},
+			success: function(resultado){
+            
+            $('#tabla_plan .btn_plato').remove();   
+                	
+			}
+
+		});
+        
+       
+        
+
+    });
+
         
 
     $("#tabla_plan").on('click','.btn_plato_recom',function(){
@@ -833,7 +876,87 @@ jQuery(document).ready(function($){
 
     });
 
+    ///////
+
+    function formatDate(date) {
+        var year = date.getFullYear();
+        var month = (date.getMonth() + 1).toString().padStart(2, '0'); // Meses en base 0
+        var day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
     
+    var dateFormat = "dd-mm-yy";
+
+    $('#calendar-container').datepicker({
+        showOtherMonths: true,
+        selectOtherMonths: true,
+        firstDay: 0,  // Para que la semana comience el domingo
+        onSelect: function(dateText) {
+
+            // Obtener la fecha seleccionada
+            var date_sel = $(this).datepicker('getDate');
+
+            var date=new Date(date_sel.getTime() );
+
+            var startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay() );
+
+            var startDate_prev = new Date(startDate); // Copiar el valor de startDate
+            startDate_prev.setDate(startDate.getDate() - 7); // Restar 7 días
+
+            // Formatear startDate a 'YYYY-MM-DD'
+            var formattedStartDate = formatDate(startDate);
+            var formattedStartDatePrev = formatDate(startDate_prev);
+
+            $("#lblfechaini").html(formattedStartDate);                
+            $("#lblfechainiprev").html(formattedStartDatePrev);
+            
+
+                ///
+                var lbl_id_user = $("#lbl-id-user").html()
+        
+                if (lbl_id_user!='0')
+                {
+                    $.ajax({
+                        url : dcms_vars.ajaxurl+'?start_date='+formattedStartDate,
+                        type: 'get',
+                        data: {
+                            action : 'dcms_cargar_semana',
+                            id_post: 'test-ajax'//id
+                        },
+                        beforeSend: function(){
+        
+                        },
+                        success: function(resultado){
+                            var obj = jQuery.parseJSON( resultado);
+                            $("#lblfechaini").html(formattedStartDate);                
+                            $("#lblfechainiprev").html(obj.general.start_date_prev);
+                            $("#lblfechafin").html(obj.general.end_date);
+                            $("#lblfechanext").html(obj.general.next_date);
+                            $("#lbl-id-menu-week").html(obj.general.id_menu_week);
+        
+                            html="";
+                            det=obj.data;
+        
+                            $('#tabla_plan').html(det) ;
+        
+                        }
+        
+        
+                    });
+        
+        
+                }
+                else{
+                   
+                    $("#p_mensaje").html("Para ver tu planificación de otras fechas necesitas iniciar sesión");
+                    $("#modalsoliniciosession").modal("show");
+                }
+                ///
+        }
+    });
+
+
+    //////
 
    });
 

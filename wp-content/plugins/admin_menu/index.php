@@ -26,6 +26,23 @@ register_activation_hook(__FILE__,'Activar');
 register_deactivation_hook(__FILE__,'Desactivar');
 register_uninstall_hook(__FILE__,'Borrar');
 
+
+
+function enqueue_week_picker_scripts() {
+    // jQuery UI CSS
+    wp_enqueue_style('jquery-ui-css', 'https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css');
+    
+    // jQuery (ya viene con WordPress, pero lo aseguramos)
+    wp_enqueue_script('jquery');
+    
+    // jQuery UI
+    wp_enqueue_script('jquery-ui-datepicker');
+    
+    // Tu script personalizado
+    wp_enqueue_script('custom-week-picker', get_template_directory_uri() . '/js/week-picker.js', array('jquery', 'jquery-ui-datepicker'), null, true);
+}
+add_action('wp_enqueue_scripts', 'enqueue_week_picker_scripts');
+
 //add_action('admin_menu','CrearMenu');
 
 function CrearMenu(){
@@ -391,6 +408,29 @@ function dcms_eliminar_menu_week_det()
         $obj->id_dish,
         $obj->date_menu,
         $obj->id_part_day
+    );
+    echo $result;
+	wp_die();
+}
+
+
+add_action('wp_ajax_nopriv_dcms_ajax_eliminar_menu_week','dcms_eliminar_menu_week');
+add_action('wp_ajax_dcms_ajax_eliminar_menu_week','dcms_eliminar_menu_week');
+function dcms_eliminar_menu_week()
+{
+    $html="fdddd";
+   $_short = new menu_plan;
+   
+    if( $_POST["datos"])
+    {
+        $datos= $_POST["datos"];
+    }
+    
+    
+    $obj = json_decode(str_replace("\\", "", $datos));
+
+    $result = $_short->EliminarMenuWeekDet(
+        $obj->id_menu_week
     );
     echo $result;
 	wp_die();

@@ -317,6 +317,8 @@ class menu_plan {
         return $resultato;
         }
 
+
+
     function InsertarMenuWeekDet($id_menu_week,$id_dish,$date_menu,$id_part_day,$id_day)
     {
         global $wpdb;
@@ -707,7 +709,7 @@ class menu_plan {
             <div class='btn-group dropend' role='group'>
                                 
                                 <button type='button' id='$id_boton' class='btn btn-outline-secondary btn-sm btn_plato' data-bs-toggle='dropdown' aria-expanded='false'
-                                 attr-IdDish='$id_plato' attr-IdPartDay='$id_part_day' style='color: black;border-radius: 6px ;  border: 1px solid #DAD4D3'>
+                                 attr-IdDish='$id_plato' attr-IdPartDay='$id_part_day' style='background-color: #A8E6A9 ; color:black ; border: 1.5px solid white '>
                                 $plato ⁝
                                 </button>
                                 <ul class='dropdown-menu'>
@@ -896,6 +898,37 @@ class menu_plan {
         
     }
 
+    function DatosFechaActual(){
+
+        $fechaActual = date('Y-m-d');
+
+        if (date("D")=="Sun"){
+            $fechaIni=$fechaActual;
+        }
+        else{
+            $fechaIni = date("Y-m-d", strtotime('last Sunday', time()));
+        }
+
+        $fechaIniPrev=strtotime('-7 day', strtotime($fechaIni));
+        $fechaIniPrev = date('Y-m-d', $fechaIniPrev);
+        $fechaFin = strtotime('+6 day', strtotime($fechaIni));
+        $fechaFin = date('Y-m-d', $fechaFin);
+        $fechaNext = strtotime('+7 day', strtotime($fechaIni));
+        $fechaNext = date('Y-m-d', $fechaNext);
+
+        $datos = Array
+        (
+            
+            'fechaActual' =>$fechaActual,
+            'fechaIni' =>$fechaIni,
+            'fechaIniPrev' =>$fechaIniPrev,
+            'fechaFin' =>$fechaFin,
+            'fechaNext' =>$fechaNext
+        );
+        return json_encode($datos);
+
+    }
+
     // función para armar la pagina principal
     function Armador($idmenu){
         //$enc = $this->ObtenerMenu($idmenu);
@@ -914,21 +947,15 @@ class menu_plan {
         //obtener todos los platos
         $platos = "";
         $dias = "";
-        $fechaActual = date('Y-m-d');
 
-        if (date("D")=="Mon"){
-            $fechaIni=$fechaActual;
-        }
-        else{
-            $fechaIni = date("Y-m-d", strtotime('last Monday', time()));
-        }
+        
+        $json_datos = $this->DatosFechaActual();
+        $obj = json_decode($json_datos);        
+        $fechaIni= $obj->fechaIni;
+        $fechaIniPrev= $obj->fechaIniPrev;
+        $fechaFin = $obj->fechaFin;
+        $fechaNext = $obj->fechaNext;
 
-        $fechaIniPrev=strtotime('-7 day', strtotime($fechaIni));
-        $fechaIniPrev = date('Y-m-d', $fechaIniPrev);
-        $fechaFin = strtotime('+6 day', strtotime($fechaIni));
-        $fechaFin = date('Y-m-d', $fechaFin);
-        $fechaNext = strtotime('+7 day', strtotime($fechaIni));
-        $fechaNext = date('Y-m-d', $fechaNext);
     
         $listadias = $this->ObtenerMenuDia();
         $current_user = wp_get_current_user(); 
@@ -955,10 +982,17 @@ class menu_plan {
         }
         
 
-
-        $head ="
         
-        $modal_nuevo
+        $id_platos ="0";
+
+        
+       $platos=$this->ObtenerPlatos($fechaIni,$fechaFin,$id_menu_week);
+
+        $html  ="
+        
+        $modal_nuevo 
+        $html_ver_plato
+        $html_sol_iniciosesion
         <div class='row'>
 
             <div class='col-md-10'>
@@ -984,9 +1018,7 @@ class menu_plan {
                     <label id='lblfechafin' class='nav-link' >$fechaFin</label>
                     <label hidden id='lblfechanext' class='nav-link' >$fechaNext</label>
 
-            
 
-            
                     <div  class='align-text-bottom' >
                     <button  class='btn btn-outline-secondary' name='btnactualizar' id='btn-recomendar' >Recomendar</button>
                     <button  class='btn btn-outline-secondary' name='btnlimpiar' id='btn-limpiar' >Limpiar</button>
@@ -996,24 +1028,26 @@ class menu_plan {
                 </nav>
             </div>
 
-            
-        
+
       
         </div>
-        
-        <div class='row'>
+            <div class='container mt-4'>
+                <div class='row'>
+                    <div class='col-md-6'>
+                        <div id='calendar-container'></div>
+                    </div>
+                    <div class='col-md-6'> 
+                        <table  id='tabla_plan' class='wp-list-table widefat fixed striped pages'> 
+                            $platos
+                        </table> 
+                    </div> 
+                </div> 
+            </div>
+            
         ";
-        $tabla="<table  id='tabla_plan' class='wp-list-table widefat fixed striped pages'> ";
-        $id_platos ="0";
+        
 
-        
-       $platos=$this->ObtenerPlatos($fechaIni,$fechaFin,$id_menu_week);
-        //$html = $this->formOpen($nombre,$dia);
-       // $html .=$dias;
-        $html =$head.$html_ver_plato.$html_sol_iniciosesion;
-        $html .= $tabla.$platos."</table></div>";
-        $html .= $this->formClose();
-        
+
 
         return $html;
 
@@ -1050,10 +1084,10 @@ class menu_plan {
                 $id_dia=$date->format('w');
                 $dia_mes=$date->format('d');
                 $date_menu=$date->format('Y-m-d');  
-                if($id_dia=='0')
-                {
-                    $id_dia='7';
-                }
+                //if($id_dia=='0')
+                //{
+                //    $id_dia='7';
+                //}
             
                 $dia=$this->ObtenerDia($id_dia,$dia_mes);
                 $head=$head." <th >$dia</th>";
@@ -1066,6 +1100,8 @@ class menu_plan {
             $head=$head."</thead>";
             $dates=$dates."</tr>";
             $days=$days."</tr>";
+
+            
             $platos_desayuno_fila="";
             $platos_almuerzo_fila="";
             $platos_cena_fila="";
@@ -1076,10 +1112,10 @@ class menu_plan {
                 $id_dia=$date->format('w');
                 $dia_mes=$date->format('d');
                 $date_menu=$date->format('Y-m-d');  
-                if($id_dia=='0')
+                /*if($id_dia=='0')
                 {
                     $id_dia='7';
-                }
+                }*/
             
                 $dia=$this->ObtenerDia($id_dia,$dia_mes);
 
@@ -1165,19 +1201,61 @@ class menu_plan {
         }
         else
         {
-            $fechaActual = date('Y-m-d');
-            if (date("D")=="Mon"){
-                $fechaIniActual=$fechaActual;
-            }
-            else{
-                $fechaIniActual = date("Y-m-d", strtotime('last Monday', time()));
+
+            $begin = new DateTime($fechaIni );
+            $end = new DateTime($fechaFin );
+
+            $fechaFin_Aux = strtotime('+1 day', strtotime($fechaFin));
+            $fechaFin_Aux = date('Y-m-d', $fechaFin_Aux);        
+            $end = new DateTime($fechaFin_Aux );
+
+            $interval = new DateInterval('P1D');
+            $daterange = new DatePeriod($begin, $interval ,$end);
+           
+
+            $tipo_plato="";
+
+            $head="<thead> <th> </th>";
+
+            $dates="<tr style='display: none;'> <td></td>";
+            $days="<tr style='display: none;'> <td></td>";
+            $agregar_desayuno="<tr> <td>Desayuno</td>";
+            $agregar_almuerzo="<tr> <td>Almuerzo</td>";
+            $agregar_cena="<tr> <td>Cena</td>";
+
+            foreach($daterange as $date)
+            {
+
+                $id_dia=$date->format('w');
+                $dia_mes=$date->format('d');
+                $date_menu=$date->format('Y-m-d');  
+                /*if($id_dia=='0')
+                {
+                    $id_dia='7';
+                }*/
+
+                
+            
+                $dia=$this->ObtenerDia($id_dia,$dia_mes);
+                $head=$head." <th >$dia</th>";
+                $dates=$dates." <td >$date_menu</td>";
+                $days=$days." <td >$id_dia</td>";
+
+                $agregar_desayuno=$agregar_desayuno."<td > <button type='button'  attr-IdPartDay='1' id='btnnuevodish' class='btn btn-outline-secondary btn-sm btnnuevodish' style='color: black;border-radius: 3px ;  border: 1px solid #DAD4D3'>+</button></td>";
+                $agregar_almuerzo=$agregar_almuerzo."<td > <button type='button'  attr-IdPartDay='2' id='btnnuevodish' class='btn btn-outline-secondary btn-sm btnnuevodish' style='color: black;border-radius: 3px ;  border: 1px solid #DAD4D3'>+</button></td>";
+                $agregar_cena=$agregar_cena."<td > <button type='button'  attr-IdPartDay='3' id='btnnuevodish' class='btn btn-outline-secondary btn-sm btnnuevodish' style='color: black;border-radius: 3px ;  border: 1px solid #DAD4D3'>+</button></td>";
+
+                
+                
+
             }
             
             //if ($fechaIniActual==$fechaIni)
             //{
-            $datos='{"id":"'.$id_menu_week.'","start_date":"'.$fechaIni.'","end_date":"'.$fechaFin.'"} ';
-            $platos_json= json_decode($this->ArmadorTabla($datos,$fechaIni));
-            $html=$platos_json->data;
+            //$datos='{"id":"'.$id_menu_week.'","start_date":"'.$fechaIni.'","end_date":"'.$fechaFin.'"} ';
+            //$platos_json= json_decode($this->ArmadorTabla($datos,$fechaIni));
+            
+            $html=$head."</thead>".$dates."</tr>".$days."</tr>".$agregar_desayuno."</tr>".$agregar_almuerzo."</tr>".$agregar_cena."</tr>";
             //}
 
 
@@ -1278,7 +1356,7 @@ class menu_plan {
                 case 6:
                     $dia="Sab. ".$dia_mes;
                     break;
-                case 7:
+                case 0:
                     $dia="Dom. ".$dia_mes;
                     break;
                 
@@ -1349,11 +1427,12 @@ class menu_plan {
             $id_dia=$date->format('w');
             $dia_mes=$date->format('d');
             $date_menu=$date->format('Y-m-d');
+            /*
             if($id_dia=='0')
             {
                 $id_dia='7';
             }
-           
+           */
             $dia=$this->ObtenerDia($id_dia,$dia_mes);
             $idmenu_det = 1;
             $encid ='encid';
@@ -1565,21 +1644,13 @@ class menu_plan {
             //obtener todos los platos
             $platos = "";
             $dias = "";
-            $fechaActual = date('Y-m-d');
 
-            if (date("D")=="Mon"){
-                $fechaIni=$fechaActual;
-            }
-            else{
-                $fechaIni = date("Y-m-d", strtotime('last Monday', time()));
-            }
-
-            $fechaIniPrev=strtotime('-7 day', strtotime($fechaIni));
-            $fechaIniPrev = date('Y-m-d', $fechaIniPrev);
-            $fechaFin = strtotime('+6 day', strtotime($fechaIni));
-            $fechaFin = date('Y-m-d', $fechaFin);
-            $fechaNext = strtotime('+7 day', strtotime($fechaIni));
-            $fechaNext = date('Y-m-d', $fechaNext);
+            $json_datos = $this->DatosFechaActual();
+            $obj = json_decode($json_datos);        
+            $fechaIni= $obj->fechaIni;
+            $fechaIniPrev= $obj->fechaIniPrev;
+            $fechaFin = $obj->fechaFin;
+            $fechaNext = $obj->fechaNext;
         
             $listadias = $this->ObtenerMenuDia();
 
